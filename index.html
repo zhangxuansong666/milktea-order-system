@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奶茶店点单系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            color: #2c3e50;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .order-form {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .order-form h2 {
+            color: #3498db;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+        }
+
+        .btn {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-delete {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            margin-top: 10px;
+        }
+
+        .orders-container {
+            flex: 2;
+            min-width: 500px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .orders-container h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .orders-container h2 span {
+            font-size: 1.2rem;
+            font-weight: normal;
+            color: #7f8c8d;
+        }
+
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .order-table th {
+            background-color: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .order-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .order-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: #fce4e2;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .notification.success {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+        }
+
+        .notification.error {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .order-form, .orders-container {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>奶茶店点单系统</h1>
+            <p>简单、快捷、高效的点单体验</p>
+        </header>
+
+        <div class="main-content">
+            <!-- 左侧：订单表单 -->
+            <div class="order-form">
+                <h2>添加新订单</h2>
+                <form id="orderForm">
+                    <div class="form-group">
+                        <label for="customerName">顾客姓名</label>
+                        <input type="text" id="customerName" class="form-control" placeholder="请输入顾客姓名" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="drink">选择饮品</label>
+                        <select id="drink" class="form-control" required>
+                            <option value="" disabled selected>请选择饮品</option>
+                            <option value="珍珠奶茶">珍珠奶茶</option>
+                            <option value="杨枝甘露">杨枝甘露</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sweetness">选择甜度</label>
+                        <select id="sweetness" class="form-control" required>
+                            <option value="" disabled selected>请选择甜度</option>
+                            <option value="无糖">无糖</option>
+                            <option value="三分糖">三分糖</option>
+                            <option value="半糖">半糖</option>
+                            <option value="全糖">全糖</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ice">选择冰块</label>
+                        <select id="ice" class="form-control" required>
+                            <option value="" disabled selected>请选择冰块</option>
+                            <option value="去冰">去冰</option>
+                            <option value="少冰">少冰</option>
+                            <option value="正常冰">正常冰</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="size">选择杯型</label>
+                        <select id="size" class="form-control" required>
+                            <option value="" disabled selected>请选择杯型</option>
+                            <option value="中杯">中杯</option>
+                            <option value="大杯">大杯</option>
+                            <option value="超大杯">超大杯</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn">添加订单</button>
+                    <button type="button" class="btn btn-delete" id="deleteOrderBtn">删除订单</button>
+                </form>
+            </div>
+
+            <!-- 右侧：订单列表 -->
+            <div class="orders-container">
+                <h2>
+                    所有订单
+                    <span id="orderCount">0 个订单</span>
+                </h2>
+
+                <div id="noOrdersMessage" class="no-orders">
+                    <p>暂无订单记录</p>
+                    <p>添加您的第一个订单吧！</p>
+                </div>
+
+                <table class="order-table" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>顾客姓名</th>
+                            <th>饮品</th>
+                            <th>甜度</th>
+                            <th>冰块</th>
+                            <th>杯型</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        <!-- 订单将通过JavaScript动态添加 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2025 奶茶店点单系统 | 简单易用的点单解决方案</p>
+        </footer>
+    </div>
+
+    <!-- 通知提示 -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // 存储所有订单的全局数组
+        let orders = [];
+
+        // DOM元素
+        const orderForm = document.getElementById('orderForm');
+        const deleteOrderBtn = document.getElementById('deleteOrderBtn');
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        const orderCountElement = document.getElementById('orderCount');
+        const noOrdersMessage = document.getElementById('noOrdersMessage');
+        const notification = document.getElementById('notification');
+
+        // 添加订单
+        function addOrder(order) {
+            orders.push(order);
+            updateOrdersDisplay();
+            showNotification(`订单添加成功！${order.顾客姓名} 的 ${order.饮品} 已加入订单列表`, 'success');
+        }
+
+        // 删除订单
+        function deleteOrder(customerName) {
+            const originalCount = orders.length;
+            orders = orders.filter(order => order.顾客姓名 !== customerName);
+
+            if (orders.length < originalCount) {
+                updateOrdersDisplay();
+                showNotification(`已删除 ${customerName} 的订单`, 'success');
+            } else {
+                showNotification(`未找到 ${customerName} 的订单`, 'error');
+            }
+        }
+
+        // 更新订单显示
+        function updateOrdersDisplay() {
+            // 更新订单数量显示
+            orderCountElement.textContent = `${orders.length} 个订单`;
+
+            // 清空表格内容
+            ordersTableBody.innerHTML = '';
+
+            if (orders.length === 0) {
+                noOrdersMessage.style.display = 'block';
+                return;
+            }
+
+            noOrdersMessage.style.display = 'none';
+
+            // 填充订单数据
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${order.顾客姓名}</td>
+                    <td>${order.饮品}</td>
+                    <td>${order.甜度}</td>
+                    <td>${order.冰块}</td>
+                    <td>${order.杯型}</td>
+                    <td>
+                        <button class="delete-btn" data-name="${order.顾客姓名}">删除</button>
+                    </td>
+                `;
+
+                ordersTableBody.appendChild(row);
+            });
+
+            // 添加删除按钮事件监听
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const customerName = this.getAttribute('data-name');
+                    deleteOrder(customerName);
+                });
+            });
+        }
+
+        // 显示通知
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // 表单提交处理
+        orderForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const customerName = document.getElementById('customerName').value.trim();
+            const drink = document.getElementById('drink').value;
+            const sweetness = document.getElementById('sweetness').value;
+            const ice = document.getElementById('ice').value;
+            const size = document.getElementById('size').value;
+
+            // 简单验证
+            if (!customerName) {
+                showNotification('请输入顾客姓名', 'error');
+                return;
+            }
+
+            const order = {
+                '顾客姓名': customerName,
+                '饮品': drink,
+                '甜度': sweetness,
+                '冰块': ice,
+                '杯型': size
+            };
+
+            addOrder(order);
+            orderForm.reset();
+        });
+
+        // 删除订单按钮处理
+        deleteOrderBtn.addEventListener('click', function() {
+            const customerName = prompt('请输入要删除的顾客姓名：');
+            if (customerName) {
+                deleteOrder(customerName.trim());
+            }
+        });
+
+        // 初始化页面
+        updateOrdersDisplay();
+    </script>
+</body>
+</html>
