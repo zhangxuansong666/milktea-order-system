@@ -357,16 +357,18 @@
         const notification = document.getElementById('notification');
 
         // 添加订单
-        async function addOrder(order) {
-            const { data, error } = await supabase
-                .from('orders')
-                .insert([order]);
-            if (error) {
-                showNotification('添加失败: ' + error.message, 'error');
-            } else {
-                showNotification(`订单添加成功！${order.customer_name} 的 ${order.drink} 已加入订单列表`, 'success');
-            }
-        }
+        async function loadOrders() {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if(error) {
+    console.error('Supabase查询错误:', error);
+    showNotification('数据加载失败: ' + error.message, 'error');
+  }
+  return error ? [] : data;
+}
 
         // 删除订单
         async function deleteOrder(customerName) {
@@ -484,5 +486,6 @@
     </script>
 </body>
 </html>
+
 
 
