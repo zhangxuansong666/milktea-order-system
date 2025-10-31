@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>奶茶店点单系统</title>
+    <!-- 引入Supabase客户端库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
     <style>
         * {
             margin: 0;
@@ -246,7 +248,6 @@
         </header>
 
         <div class="main-content">
-            <!-- 左侧：订单表单 -->
             <div class="order-form">
                 <h2>添加新订单</h2>
                 <form id="orderForm">
@@ -300,7 +301,6 @@
                 </form>
             </div>
 
-            <!-- 右侧：订单列表 -->
             <div class="orders-container">
                 <h2>
                     所有订单
@@ -339,8 +339,14 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // 存储所有订单的全局数组
-        let orders = [];
+        // 初始化Supabase客户端（替换为您的实际项目URL和密钥）
+        const supabase = createClient(
+            'https://xxxx.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+        );
+
+        // 实时订阅订单表变化
+        supabase.from('orders').on('*', updateOrdersDisplay).subscribe();
 
         // DOM元素
         const orderForm = document.getElementById('orderForm');
@@ -351,58 +357,71 @@
         const notification = document.getElementById('notification');
 
         // 添加订单
-        function addOrder(order) {
-            orders.push(order);
-            updateOrdersDisplay();
-            showNotification(`订单添加成功！${order.顾客姓名} 的 ${order.饮品} 已加入订单列表`, 'success');
-        }
-
-        // 删除订单
-        function deleteOrder(customerName) {
-            const originalCount = orders.length;
-            orders = orders.filter(order => order.顾客姓名 !== customerName);
-
-            if (orders.length < originalCount) {
-                updateOrdersDisplay();
-                showNotification(`已删除 ${customerName} 的订单`, 'success');
+        async function addOrder(order) {
+            const { data, error } = await supabase
+                .from('orders')
+                .insert([order]);
+            if (error) {
+                showNotification('添加失败: ' + error.message, 'error');
             } else {
-                showNotification(`未找到 ${customerName} 的订单`, 'error');
+                showNotification(`订单添加成功！${order.customer_name} 的 ${order.drink} 已加入订单列表`, 'success');
             }
         }
 
+        // 删除订单
+        async function deleteOrder(customerName) {
+            const { error } = await supabase
+                .from('orders')
+                .delete()
+                .eq('customer_name', customerName);
+            if (error) {
+                showNotification('删除失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载订单
+        async function loadOrders() {
+            const { data, error } = await supabase
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false });
+            return error ? [] : data;
+        }
+
         // 更新订单显示
-        function updateOrdersDisplay() {
+        async function updateOrdersDisplay() {
+            // 从Supabase加载订单数据
+            const orders = await loadOrders();
+            
             // 更新订单数量显示
             orderCountElement.textContent = `${orders.length} 个订单`;
-
+            
             // 清空表格内容
             ordersTableBody.innerHTML = '';
-
+            
             if (orders.length === 0) {
                 noOrdersMessage.style.display = 'block';
                 return;
             }
-
+            
             noOrdersMessage.style.display = 'none';
-
+            
             // 填充订单数据
             orders.forEach(order => {
                 const row = document.createElement('tr');
-
                 row.innerHTML = `
-                    <td>${order.顾客姓名}</td>
-                    <td>${order.饮品}</td>
-                    <td>${order.甜度}</td>
-                    <td>${order.冰块}</td>
-                    <td>${order.杯型}</td>
+                    <td>${order.customer_name}</td>
+                    <td>${order.drink}</td>
+                    <td>${order.sweetness}</td>
+                    <td>${order.ice}</td>
+                    <td>${order.size}</td>
                     <td>
-                        <button class="delete-btn" data-name="${order.顾客姓名}">删除</button>
+                        <button class="delete-btn" data-name="${order.customer_name}">删除</button>
                     </td>
                 `;
-
                 ordersTableBody.appendChild(row);
             });
-
+            
             // 添加删除按钮事件监听
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function() {
@@ -417,7 +436,7 @@
             notification.textContent = message;
             notification.className = `notification ${type}`;
             notification.classList.add('show');
-
+            
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
@@ -426,27 +445,27 @@
         // 表单提交处理
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             const customerName = document.getElementById('customerName').value.trim();
             const drink = document.getElementById('drink').value;
             const sweetness = document.getElementById('sweetness').value;
             const ice = document.getElementById('ice').value;
             const size = document.getElementById('size').value;
-
+            
             // 简单验证
             if (!customerName) {
                 showNotification('请输入顾客姓名', 'error');
                 return;
             }
-
+            
             const order = {
-                '顾客姓名': customerName,
-                '饮品': drink,
-                '甜度': sweetness,
-                '冰块': ice,
-                '杯型': size
+                'customer_name': customerName,
+                'drink': drink,
+                'sweetness': sweetness,
+                'ice': ice,
+                'size': size
             };
-
+            
             addOrder(order);
             orderForm.reset();
         });
