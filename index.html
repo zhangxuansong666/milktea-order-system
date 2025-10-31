@@ -357,81 +357,62 @@
         const notification = document.getElementById('notification');
 
         // 添加订单
-        async function loadOrders() {
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .order('created_at', { ascending: false });
-  
-  if(error) {
-    console.error('Supabase查询错误:', error);
-    showNotification('数据加载失败: ' + error.message, 'error');
+                async function loadOrders() {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if(error) {
+      console.error('Supabase查询错误:', error);
+      showNotification('数据加载失败: ' + error.message, 'error');
+    }
+    return error ? [] : data;
   }
-  return error ? [] : data;
-}
 
-        // 删除订单
-        async function deleteOrder(customerName) {
-            const { error } = await supabase
-                .from('orders')
-                .delete()
-                .eq('customer_name', customerName);
-            if (error) {
-                showNotification('删除失败: ' + error.message, 'error');
-            }
-        }
-
-        // 加载订单
-        async function loadOrders() {
-            const { data, error } = await supabase
-                .from('orders')
-                .select('*')
-                .order('created_at', { ascending: false });
-            return error ? [] : data;
-        }
-
-        // 更新订单显示
-        async function updateOrdersDisplay() {
-            // 从Supabase加载订单数据
-            const orders = await loadOrders();
-            
-            // 更新订单数量显示
-            orderCountElement.textContent = `${orders.length} 个订单`;
-            
-            // 清空表格内容
-            ordersTableBody.innerHTML = '';
-            
-            if (orders.length === 0) {
-                noOrdersMessage.style.display = 'block';
-                return;
-            }
-            
-            noOrdersMessage.style.display = 'none';
-            
-            // 填充订单数据
-            orders.forEach(order => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${order.customer_name}</td>
-                    <td>${order.drink}</td>
-                    <td>${order.sweetness}</td>
-                    <td>${order.ice}</td>
-                    <td>${order.size}</td>
-                    <td>
-                        <button class="delete-btn" data-name="${order.customer_name}">删除</button>
-                    </td>
-                `;
-                ordersTableBody.appendChild(row);
-            });
-            
-            // 添加删除按钮事件监听
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const customerName = this.getAttribute('data-name');
-                    deleteOrder(customerName);
-                });
-            });
-        }
+  // 更新订单显示（添加调试日志）
+  async function updateOrdersDisplay() {
+    // 从Supabase加载订单数据
+    const orders = await loadOrders();
+    console.log('更新订单数据:', orders);  // 正确位置的调试日志
+    
+    // 更新订单数量显示
+    orderCountElement.textContent = `${orders.length} 个订单`;
+    
+    // 清空表格内容
+    ordersTableBody.innerHTML = '';
+    
+    if (orders.length === 0) {
+      noOrdersMessage.style.display = 'block';
+      return;
+    }
+    
+    noOrdersMessage.style.display = 'none';
+    
+    // 填充订单数据
+    orders.forEach(order => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${order.customer_name}</td>
+        <td>${order.drink}</td>
+        <td>${order.sweetness}</td>
+        <td>${order.ice}</td>
+        <td>${order.size}</td>
+        <td>
+          <button class="delete-btn" data-name="${order.customer_name}">删除</button>
+        </td>
+      `;
+      ordersTableBody.appendChild(row);
+    });
+    
+    // 添加删除按钮事件监听
+    document.querySelectorAll('.delete-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const customerName = this.getAttribute('data-name');
+        deleteOrder(customerName);
+      });
+    });
+  }
 
         // 显示通知
         function showNotification(message, type) {
@@ -486,6 +467,7 @@
     </script>
 </body>
 </html>
+
 
 
 
